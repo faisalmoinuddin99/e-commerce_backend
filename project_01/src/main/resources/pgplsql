@@ -1,0 +1,40 @@
+drop table tbl_product_info ;
+
+
+select table_name from information_schema.tables
+where table_schema = 'public'
+and table_type = 'BASE TABLE' ;
+
+
+select * from tbl_product_info ;
+
+
+
+CREATE OR REPLACE FUNCTION update_stock_status()
+RETURNS TRIGGER AS
+	$$
+
+
+	BEGIN
+		IF NEW.product_count = 0 THEN
+			NEW.in_stock = false ;
+		ELSE
+			NEW.in_stock = true ;
+		END IF;
+		RETURN NEW ;
+	END ;
+
+$$ LANGUAGE plpgsql ;
+
+
+CREATE TRIGGER update_stock_trigger
+BEFORE INSERT OR UPDATE OF
+product_count ON tbl_product_info
+FOR EACH ROW
+EXECUTE FUNCTION update_stock_status() ;
+
+select * from tbl_product_info ;
+
+update tbl_product_info
+set product_count = 5
+where id = 2 ;
